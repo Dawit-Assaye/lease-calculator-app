@@ -1,8 +1,24 @@
+"use client";
+import { useMutation } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { Checkbox } from "~/components/ui/checkbox";
+import { toast } from "react-hot-toast";
+import { Card } from "~/components/ui/card";
 
 const leaseSchema = z.object({
   startDate: z.string().nonempty("Start date is required"),
@@ -17,178 +33,286 @@ const leaseSchema = z.object({
   utilitiesIncluded: z.boolean(),
 });
 
-export default function LeaseForm() {
-  const [totalCost, setTotalCost] = useState(0);
-  const [duration, setDuration] = useState(0);
+export default function LeaseForm({ onSuccess }) {
+  const [leaseType, setLeaseType] = useState("Residential");
+  const [calculations, setCalculations] = useState({
+    totalRent: 0,
+    totalMaintenance: 0,
+    totalWithIncrease: 0,
+    monthlyTotal: 0,
+    duration: 0,
+  });
+
+  const mutation = useMutation({
+    mutationFn: (data) => {
+      console.log("Mutation executing with:", data);
+      return axios.post("/leases/api", data);
+    },
+    onSuccess: () => {
+      console.log("Mutation succeeded");
+      toast.success("Lease saved successfully!");
+      onSuccess?.();
+    },
+    onError: (error) => {
+      console.log("Mutation failed:", error);
+      toast.error("Error saving lease.");
+    },
+  });
 
   const {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(leaseSchema),
     defaultValues: {
       utilitiesIncluded: false,
+      monthlyRent: 0,
+      maintenanceFees: 0,
+      annualRentIncrease: 0,
+      additionalCharges: 0,
+      leaseType: "Residential",
     },
   });
 
-  const watchFields = watch([
-    "startDate",
-    "endDate",
-    "monthlyRent",
-    "maintenanceFees",
+  const watchAllFields = watch();
+
+  useEffect(() => {
+    const calculateTotals = () => {
+      const calculations = calculateLeaseTotals(watchAllFields);
+      if (calculations) {
+        setCalculations({
+          totalRent: calculations.baseRent,
+          totalMaintenance: calculations.totalMaintenance,
+          totalWithIncrease: calculations.totalWithIncrease,
+          monthlyTotal: calculations.monthlyAverage,
+          duration: calculations.duration,
+        });
+      }
+    };
+
+    calculateTotals();
+  }, [
+    watchAllFields.startDate,
+    watchAllFields.endDate,
+    watchAllFields.monthlyRent,
+    watchAllFields.maintenanceFees,
+    watchAllFields.additionalCharges,
+    watchAllFields.annualRentIncrease,
   ]);
 
-  useEffect(() => {
-    if (watchFields.startDate && watchFields.endDate) {
-      const start = new Date(watchFields.startDate);
-      const end = new Date(watchFields.endDate);
-      const months =
-        (end.getFullYear() - start.getFullYear()) * 12 +
-        end.getMonth() -
-        start.getMonth();
-      setDuration(months > 0 ? months : 0);
-    }
-  }, [watchFields.startDate, watchFields.endDate]);
-
-  useEffect(() => {
-    const rentTotal = (watchFields.monthlyRent || 0) * duration;
-    const maintenanceTotal = (watchFields.maintenanceFees || 0) * duration;
-    setTotalCost(rentTotal + maintenanceTotal);
-  }, [duration, watchFields.monthlyRent, watchFields.maintenanceFees]);
-
-  const onSubmit = async (data) => {
-    try {
-      await axios.post("/api/leases", data);
-      alert("Lease saved successfully!");
-    } catch (error) {
-      alert("Error saving lease.");
-    }
+  const onSubmit = (data) => {
+    console.log("Form data:", data);
+    console.log("Form errors:", errors);
+    const formData = {
+      ...data,
+      leaseType,
+    };
+    mutation.mutate(formData);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-4 p-4 max-w-md mx-auto"
-    >
-      <label>
-        Start Date:
-        <input
-          type="date"
-          {...register("startDate")}
-          className="block w-full"
-        />
-        {errors.startDate && (
-          <p className="text-red-500">{errors.startDate.message}</p>
-        )}
-      </label>
+    <Card className="p-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Start Date</Label>
+            <Input type="date" {...register("startDate")} />
+            {errors.startDate && (
+              <span className="text-red-500 text-sm">
+                {errors.startDate.message}
+              </span>
+            )}
+          </div>
 
-      <label>
-        End Date:
-        <input type="date" {...register("endDate")} className="block w-full" />
-        {errors.endDate && (
-          <p className="text-red-500">{errors.endDate.message}</p>
-        )}
-      </label>
+          <div className="space-y-2">
+            <Label>End Date</Label>
+            <Input type="date" {...register("endDate")} />
+            {errors.endDate && (
+              <span className="text-red-500 text-sm">
+                {errors.endDate.message}
+              </span>
+            )}
+          </div>
+        </div>
 
-      <label>
-        Monthly Rent Amount:
-        <input
-          type="number"
-          {...register("monthlyRent")}
-          className="block w-full"
-        />
-        {errors.monthlyRent && (
-          <p className="text-red-500">{errors.monthlyRent.message}</p>
-        )}
-      </label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label>Monthly Rent ($)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              {...register("monthlyRent", { valueAsNumber: true })}
+            />
+          </div>
 
-      <label>
-        Security Deposit:
-        <input
-          type="number"
-          {...register("securityDeposit")}
-          className="block w-full"
-        />
-        {errors.securityDeposit && (
-          <p className="text-red-500">{errors.securityDeposit.message}</p>
-        )}
-      </label>
+          <div className="space-y-2">
+            <Label>Security Deposit ($)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              {...register("securityDeposit", { valueAsNumber: true })}
+            />
+          </div>
 
-      <label>
-        Additional Charges:
-        <input
-          type="number"
-          {...register("additionalCharges")}
-          className="block w-full"
-        />
-        {errors.additionalCharges && (
-          <p className="text-red-500">{errors.additionalCharges.message}</p>
-        )}
-      </label>
+          <div className="space-y-2">
+            <Label>Additional Charges ($)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              {...register("additionalCharges", { valueAsNumber: true })}
+            />
+          </div>
+        </div>
 
-      <label>
-        Annual Rent Increase Percentage:
-        <input
-          type="number"
-          step="0.01"
-          {...register("annualRentIncrease")}
-          className="block w-full"
-        />
-        {errors.annualRentIncrease && (
-          <p className="text-red-500">{errors.annualRentIncrease.message}</p>
-        )}
-      </label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label>Annual Rent Increase (%)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              {...register("annualRentIncrease", { valueAsNumber: true })}
+            />
+          </div>
 
-      <label>
-        Maintenance Fees (Monthly):
-        <input
-          type="number"
-          {...register("maintenanceFees")}
-          className="block w-full"
-        />
-        {errors.maintenanceFees && (
-          <p className="text-red-500">{errors.maintenanceFees.message}</p>
-        )}
-      </label>
+          <div className="space-y-2">
+            <Label>Maintenance Fees ($)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              {...register("maintenanceFees", { valueAsNumber: true })}
+            />
+          </div>
 
-      <label>
-        Late Payment Penalty:
-        <input
-          type="number"
-          {...register("latePaymentPenalty")}
-          className="block w-full"
-        />
-        {errors.latePaymentPenalty && (
-          <p className="text-red-500">{errors.latePaymentPenalty.message}</p>
-        )}
-      </label>
+          <div className="space-y-2">
+            <Label>Late Payment Penalty ($)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              {...register("latePaymentPenalty", { valueAsNumber: true })}
+            />
+          </div>
+        </div>
 
-      <label>
-        Lease Type:
-        <select {...register("leaseType")} className="block w-full">
-          <option value="Residential">Residential</option>
-          <option value="Commercial">Commercial</option>
-        </select>
-        {errors.leaseType && (
-          <p className="text-red-500">{errors.leaseType.message}</p>
-        )}
-      </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Lease Type</Label>
+            <Controller
+              name="leaseType"
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Residential">Residential</SelectItem>
+                    <SelectItem value="Commercial">Commercial</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
 
-      <label>
-        Utilities Included:
-        <input type="checkbox" {...register("utilitiesIncluded")} />
-      </label>
+          <div className="flex items-center space-x-2 h-full">
+            <Checkbox {...register("utilitiesIncluded")} />
+            <Label>Utilities Included</Label>
+          </div>
+        </div>
 
-      <p>Total Lease Cost: ${totalCost.toFixed(2)}</p>
+        <Card className="p-4 bg-slate-50">
+          <h3 className="font-semibold mb-2">Lease Summary</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <p className="text-gray-600">Duration</p>
+              <p className="font-semibold" suppressHydrationWarning>
+                {calculations.duration} months
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600">Base Total Rent</p>
+              <p className="font-semibold" suppressHydrationWarning>
+                ${calculations.totalRent.toFixed(2)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600">Total with Increases</p>
+              <p className="font-semibold" suppressHydrationWarning>
+                ${calculations.totalWithIncrease.toFixed(2)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600">Total Maintenance</p>
+              <p className="font-semibold" suppressHydrationWarning>
+                ${calculations.totalMaintenance.toFixed(2)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600">Average Monthly Cost</p>
+              <p className="font-semibold" suppressHydrationWarning>
+                ${calculations.monthlyTotal.toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </Card>
 
-      <button
-        type="submit"
-        className="bg-blue-500 text-white py-2 px-4 rounded"
-      >
-        Save Lease
-      </button>
-    </form>
+        <Button type="submit" className="w-full" disabled={mutation.isLoading}>
+          {mutation.isLoading ? "Saving..." : "Save Lease"}
+        </Button>
+      </form>
+    </Card>
   );
 }
+
+const calculateLeaseTotals = (data) => {
+  const start = new Date(data.startDate);
+  const end = new Date(data.endDate);
+
+  if (!data.startDate || !data.endDate) return null;
+
+  // 1. Duration Calculation
+  const months =
+    (end.getFullYear() - start.getFullYear()) * 12 +
+    (end.getMonth() - start.getMonth());
+  const years = months / 12;
+
+  // 2. Base Total Rent
+  const baseRent = (data.monthlyRent || 0) * months;
+
+  // 3. Annual Increase Calculation with Compound Interest
+  let totalWithIncrease = baseRent;
+  const annualIncrease = (data.annualRentIncrease || 0) / 100;
+
+  for (let i = 1; i < years; i++) {
+    totalWithIncrease += baseRent * Math.pow(1 + annualIncrease, i);
+  }
+
+  // 4. Total Maintenance
+  const totalMaintenance = (data.maintenanceFees || 0) * months;
+
+  // Additional Charges Total
+  const additionalChargesTotal = (data.additionalCharges || 0) * months;
+
+  // 5. Total Cost Calculation
+  const totalCost =
+    totalWithIncrease +
+    totalMaintenance +
+    additionalChargesTotal +
+    (data.securityDeposit || 0);
+
+  // Monthly Average
+  const monthlyAverage = totalCost / months;
+
+  return {
+    duration: months,
+    baseRent: baseRent,
+    totalWithIncrease: totalWithIncrease,
+    totalMaintenance: totalMaintenance,
+    totalCost: totalCost,
+    monthlyAverage: monthlyAverage,
+    additionalChargesTotal: additionalChargesTotal,
+    securityDeposit: data.securityDeposit || 0,
+  };
+};
