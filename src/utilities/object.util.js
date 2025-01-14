@@ -1,3 +1,11 @@
+const parseToJSON = (str) => {
+  try {
+    return JSON.parse(str);
+  } catch (parseError) {
+    return str;
+  }
+};
+
 export function parseErrorMessageToJSON(error) {
   const errors = {
     message: ["Something went wrong. Please try again later."],

@@ -33,8 +33,11 @@ const leaseSchema = z.object({
   utilitiesIncluded: z.boolean(),
 });
 
-export default function LeaseForm({ onSuccess }) {
-  const [leaseType, setLeaseType] = useState("Residential");
+export default function LeaseForm({
+  mode = "new",
+  initialData = null,
+  onSuccess,
+}) {
   const [calculations, setCalculations] = useState({
     totalRent: 0,
     totalMaintenance: 0,
@@ -42,20 +45,29 @@ export default function LeaseForm({ onSuccess }) {
     monthlyTotal: 0,
     duration: 0,
   });
-
   const mutation = useMutation({
     mutationFn: (data) => {
-      console.log("Mutation executing with:", data);
-      return axios.post("/leases/api", data);
+      if (mode === "new") {
+        return axios.post("/leases/api", data);
+      } else {
+        return axios.put(`/leases/api/${initialData.id}`, {
+          ...data,
+          id: initialData.id,
+        });
+      }
     },
     onSuccess: () => {
-      console.log("Mutation succeeded");
-      toast.success("Lease saved successfully!");
+      toast.success(
+        mode === "new"
+          ? "Lease saved successfully!"
+          : "Lease updated successfully!"
+      );
       onSuccess?.();
     },
     onError: (error) => {
-      console.log("Mutation failed:", error);
-      toast.error("Error saving lease.");
+      toast.error(
+        mode === "new" ? "Error saving lease." : "Error updating lease."
+      );
     },
   });
 
@@ -64,6 +76,7 @@ export default function LeaseForm({ onSuccess }) {
     handleSubmit,
     watch,
     control,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(leaseSchema),
@@ -74,10 +87,26 @@ export default function LeaseForm({ onSuccess }) {
       annualRentIncrease: 0,
       additionalCharges: 0,
       leaseType: "Residential",
+      ...(initialData || {}), // Populate form with initialData if provided
     },
   });
 
   const watchAllFields = watch();
+
+  const onSubmit = (data) => {
+    console.log("Form data:", data);
+    console.log("Form errors:", errors);
+    const formData = {
+      ...data,
+    };
+    mutation.mutate(formData);
+  };
+
+  useEffect(() => {
+    if (mode === "update" && initialData) {
+      reset(initialData);
+    }
+  }, [initialData, mode, reset]);
 
   useEffect(() => {
     const calculateTotals = () => {
@@ -103,18 +132,11 @@ export default function LeaseForm({ onSuccess }) {
     watchAllFields.annualRentIncrease,
   ]);
 
-  const onSubmit = (data) => {
-    console.log("Form data:", data);
-    console.log("Form errors:", errors);
-    const formData = {
-      ...data,
-      leaseType,
-    };
-    mutation.mutate(formData);
-  };
-
   return (
     <Card className="p-6">
+      <h2 className="text-xl font-semibold mb-4">
+        {mode === "new" ? "Create New Lease" : "Update Lease"}
+      </h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -259,7 +281,13 @@ export default function LeaseForm({ onSuccess }) {
         </Card>
 
         <Button type="submit" className="w-full" disabled={mutation.isLoading}>
-          {mutation.isLoading ? "Saving..." : "Save Lease"}
+          {mutation.isLoading
+            ? mode === "new"
+              ? "Saving..."
+              : "Updating..."
+            : mode === "new"
+            ? "Save Lease"
+            : "Update Lease"}
         </Button>
       </form>
     </Card>

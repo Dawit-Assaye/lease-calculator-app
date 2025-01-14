@@ -54,3 +54,68 @@ export async function POST(request) {
     );
   }
 }
+
+export async function GET() {
+  const session = await getServerSession();
+
+  if (!session) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
+  }
+
+  try {
+    const leases = await prisma.lease.findMany({
+      where: {
+        user: {
+          email: session.user.email,
+        },
+      },
+    });
+
+    return new Response(JSON.stringify(leases), { status: 200 });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        error: "Error fetching leases",
+        details: error.message,
+      }),
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request) {
+  const session = await getServerSession();
+
+  if (!session) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
+  }
+
+  try {
+    const { id, ...leaseData } = await request.json();
+    const validatedData = leaseSchema.parse(leaseData);
+
+    const lease = await prisma.lease.update({
+      where: {
+        id: id,
+        user: {
+          email: session.user.email,
+        },
+      },
+      data: validatedData,
+    });
+
+    return new Response(JSON.stringify(lease), { status: 200 });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        error: "Error updating lease",
+        details: error instanceof z.ZodError ? error.errors : error.message,
+      }),
+      { status: 500 }
+    );
+  }
+}

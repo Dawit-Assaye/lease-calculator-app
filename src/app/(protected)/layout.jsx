@@ -77,10 +77,7 @@ function LayoutContent({ children }) {
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Add New Lease</DialogTitle>
-              </DialogHeader>
-              <LeaseForm onSuccess={handleLeaseSuccess} />
+              <LeaseForm mode="new" onSuccess={handleLeaseSuccess} />
             </DialogContent>
           </Dialog>
         </div>
