@@ -11,13 +11,13 @@ export const metadata = {
   // metadataBase: new URL(
   //   env.VERCEL_ENV === "production" ? "https://kg.org" : "http://localhost:3000"
   // ),
-  title: "Insurance Reminder System",
-  description: "Insurance Reminder System",
+  title: "Lease App",
+  description: "Lease App",
   openGraph: {
-    title: "Insurance Reminder System",
-    description: "Insurance Reminder System",
-    url: "https://kg.app",
-    siteName: "Insurance Reminder System",
+    title: "Lease App",
+    description: "Lease App",
+    url: "https://Lease.app",
+    siteName: "Lease App",
   },
 };
 
