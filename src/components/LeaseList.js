@@ -25,11 +25,13 @@ import { Card } from "~/components/ui/card";
 import { Icon } from "@iconify/react";
 import { Button } from "./ui/button";
 
-export default function LeaseList({ leases }) {
+export default function LeaseList({ leases, mode = "all" }) {
   const [editingLease, setEditingLease] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [leaseToDelete, setLeaseToDelete] = useState(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [sharingLease, setSharingLease] = useState(null);
 
   const handleEdit = (lease, e) => {
     e.stopPropagation();
@@ -44,6 +46,12 @@ export default function LeaseList({ leases }) {
     setIsModalOpen(false);
     setEditingLease(null);
     window.location.reload();
+  };
+
+  const handleShareClick = (lease, e) => {
+    e.stopPropagation();
+    setSharingLease(lease);
+    setIsShareModalOpen(true);
   };
 
   const handleDeleteClick = (lease, e) => {
@@ -103,7 +111,7 @@ export default function LeaseList({ leases }) {
                       <Icon icon="solar:pen-bold" width="16" />
                     </Button>
                     <Button
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => handleShareClick(lease, e)}
                       className="p-2 bg-transparent hover:h-fit hover:w-fit hover:bg-primary/10 rounded-full transition-colors text-primary hover:scale-105 active:scale-95"
                       title="Share"
                     >
@@ -215,6 +223,18 @@ export default function LeaseList({ leases }) {
             onSuccess={handleUpdateSuccess}
           />
         </DialogContent>
+      </Dialog>
+
+      <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
+        {sharingLease && (
+          <ShareLeaseDialog
+            lease={sharingLease}
+            onClose={() => {
+              setIsShareModalOpen(false);
+              setSharingLease(null);
+            }}
+          />
+        )}
       </Dialog>
 
       <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
