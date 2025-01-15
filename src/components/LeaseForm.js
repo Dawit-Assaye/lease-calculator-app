@@ -279,16 +279,21 @@ export default function LeaseForm({
             </div>
           </div>
         </Card>
-
-        <Button type="submit" className="w-full" disabled={mutation.isLoading}>
-          {mutation.isLoading
-            ? mode === "new"
-              ? "Saving..."
-              : "Updating..."
-            : mode === "new"
-            ? "Save Lease"
-            : "Update Lease"}
-        </Button>
+        <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isLoading}
+          >
+            {mutation.isLoading
+              ? mode === "new"
+                ? "Saving..."
+                : "Updating..."
+              : mode === "new"
+              ? "Save Lease"
+              : "Update Lease"}
+          </Button>
+        </div>
       </form>
     </Card>
   );

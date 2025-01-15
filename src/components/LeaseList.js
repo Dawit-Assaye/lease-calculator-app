@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import LeaseForm from "~/components/LeaseForm";
+import ShareLeaseDialog from "~/components/ShareLeaseDialog";
 
 import {
   Accordion,
@@ -102,29 +103,53 @@ export default function LeaseList({ leases, mode = "all" }) {
                   <span className="text-sm font-medium text-primary bg-primary/5 px-3 py-1 rounded-md">
                     {lease.leaseType}
                   </span>
-                  <div className="flex gap-2 ml-6 mr-4">
-                    <Button
-                      onClick={(e) => handleEdit(lease, e)}
-                      className="p-2 bg-transparent hover:h-fit hover:w-fit hover:bg-primary/10 rounded-full transition-colors text-primary hover:scale-105 active:scale-95"
-                      title="Edit"
-                    >
-                      <Icon icon="solar:pen-bold" width="16" />
-                    </Button>
-                    <Button
-                      onClick={(e) => handleShareClick(lease, e)}
-                      className="p-2 bg-transparent hover:h-fit hover:w-fit hover:bg-primary/10 rounded-full transition-colors text-primary hover:scale-105 active:scale-95"
-                      title="Share"
-                    >
-                      <Icon icon="solar:share-bold" width="16" />
-                    </Button>
-                    <button
-                      onClick={(e) => handleDeleteClick(lease, e)}
-                      className="p-2 hover:bg-destructive/10 rounded-full transition-colors text-destructive hover:scale-105 active:scale-95"
-                      title="Delete"
-                    >
-                      <Icon icon="solar:trash-bin-trash-bold" width="16" />
-                    </button>
-                  </div>
+                  {lease.sharedByEmail && (
+                    <span className="text-sm text-primary/70">
+                      From: {lease.sharedByEmail}
+                    </span>
+                  )}
+                  {lease.sharedWithEmail && (
+                    <span className="text-sm text-primary/70">
+                      To: {lease.sharedWithEmail}
+                    </span>
+                  )}
+                  {mode !== "shared-with-me" && (
+                    <div className="flex gap-2 ml-6 mr-4">
+                      <Button
+                        onClick={(e) => handleEdit(lease, e)}
+                        className="p-2 bg-transparent hover:h-fit hover:w-fit hover:bg-primary/10 rounded-full transition-colors text-primary hover:scale-105 active:scale-95"
+                        title="Edit"
+                      >
+                        <Icon icon="solar:pen-bold" width="16" />
+                      </Button>
+                      <Button
+                        onClick={(e) => handleShareClick(lease, e)}
+                        className="p-2 bg-transparent hover:h-fit hover:w-fit hover:bg-primary/10 rounded-full transition-colors text-primary hover:scale-105 active:scale-95"
+                        title="Share"
+                      >
+                        <Icon icon="solar:share-bold" width="16" />
+                      </Button>
+                      <button
+                        onClick={(e) => handleDeleteClick(lease, e)}
+                        className="p-2 hover:bg-destructive/10 rounded-full transition-colors text-destructive hover:scale-105 active:scale-95"
+                        title="Delete"
+                      >
+                        <Icon icon="solar:trash-bin-trash-bold" width="16" />
+                      </button>
+                    </div>
+                  )}
+
+                  {mode === "shared-with-me" && (
+                    <div className="flex gap-2 ml-6 mr-4">
+                      <Button
+                        onClick={(e) => handleShareClick(lease, e)}
+                        className="p-2 bg-transparent hover:h-fit hover:w-fit hover:bg-primary/10 rounded-full transition-colors text-primary hover:scale-105 active:scale-95"
+                        title="Share"
+                      >
+                        <Icon icon="solar:share-bold" width="16" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </AccordionTrigger>

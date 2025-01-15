@@ -14,6 +14,7 @@ import {
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import LeaseForm from "~/components/LeaseForm";
+import { toast } from "react-hot-toast";
 
 function LayoutContent({ children }) {
   const pathname = usePathname();
@@ -22,7 +23,11 @@ function LayoutContent({ children }) {
 
   const handleLeaseSuccess = () => {
     setOpen(false);
-    //TODO Add success notification
+    toast({
+      title: "Success",
+      description: "Lease created successfully",
+      variant: "success",
+    });
   };
 
   return (
@@ -65,11 +70,11 @@ function LayoutContent({ children }) {
                   ? ""
                   : pathname === "/leases/shared"
                   ? "Shared Leases"
-                  : "Invitations"}
+                  : "Shared with me"}
               </span>
             </nav>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={setOpen} className="text-primary">
             <DialogTrigger asChild>
               <Button className="flex items-center">
                 <Icon icon="mdi:plus" className="mr-2 font-bold" />
@@ -77,13 +82,15 @@ function LayoutContent({ children }) {
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle></DialogTitle>
+              </DialogHeader>
               <LeaseForm mode="new" onSuccess={handleLeaseSuccess} />
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Rest of the code remains the same */}
-        <div className="mb-6">
+        <div className="mt-12">
           <nav className="flex gap-8">
             <Link
               href="/leases"
@@ -106,14 +113,14 @@ function LayoutContent({ children }) {
               Shared
             </Link>
             <Link
-              href="/leases/invitations"
+              href="/leases/shared-with-me"
               className={`pb-4 ${
-                pathname === "/leases/invitations"
+                pathname === "/leases/shared-with-me"
                   ? "border-b-2 border-secondary font-semibold text-secondary"
                   : "text-muted-foreground hover:text-secondary"
               }`}
             >
-              Invitations
+              Shared with me
             </Link>
           </nav>
         </div>

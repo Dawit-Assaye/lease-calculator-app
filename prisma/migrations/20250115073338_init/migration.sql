@@ -32,6 +32,8 @@ CREATE TABLE "SharedLease" (
     "id" SERIAL NOT NULL,
     "leaseId" INTEGER NOT NULL,
     "sharedWithEmail" TEXT NOT NULL,
+    "sharedByEmail" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "SharedLease_pkey" PRIMARY KEY ("id")
 );

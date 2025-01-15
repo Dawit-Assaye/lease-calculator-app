@@ -11,7 +11,10 @@ export async function POST(request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    console.log(session.user.email, "SESSION USER EMAIL");
+
     const { leaseId, sharedWithEmail } = await request.json();
+    const sharedByEMail = session.user.email;
 
     const sharedUser = await prisma.user.findUnique({
       where: { email: sharedWithEmail },
@@ -20,13 +23,22 @@ export async function POST(request) {
     if (!sharedUser) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
+    if (session.user.email === sharedWithEmail) {
+      return NextResponse.json(
+        { message: "Cannot share lease with yourself" },
+        { status: 400 }
+      );
+    }
+    console.log(leaseId, sharedWithEmail, sharedByEMail, "LEASE ID AND EMAIL");
 
     const sharedLease = await prisma.sharedLease.create({
       data: {
         leaseId,
-        userId: sharedUser.id,
+        sharedWithEmail,
+        sharedByEmail: sharedByEMail,
       },
     });
+    console.log(sharedLease, "SHARED LEASE");
 
     return NextResponse.json(sharedLease, { status: 201 });
   } catch (error) {

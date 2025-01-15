@@ -1,49 +1,60 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import ErrorMessage from "./ui/helpers/ErrorMessage";
+import { toast } from "react-hot-toast";
 
 export default function ShareLeaseDialog({ lease, onClose }) {
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm();
 
-  const handleShare = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const onSubmit = async (data) => {
     try {
-      const response = await fetch("/api/leases/share", {
+      const response = await fetch("/leases/share/api", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leaseId: lease.id, sharedWithEmail: email }),
+        body: JSON.stringify({
+          leaseId: lease.id,
+          sharedWithEmail: data.email,
+        }),
       });
 
-      if (!response.ok) throw new Error("Failed to share lease");
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.message);
+
+      toast.success(`Lease successfully shared with ${data.email}`);
       onClose();
     } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
+      toast.error(error.message || "Failed to share lease");
+      return Promise.reject(error.message);
     }
   };
 
   return (
-    <DialogContent>
+    <DialogContent className="text-primary">
       <DialogHeader>
         <DialogTitle>Share Lease #{lease.id}</DialogTitle>
       </DialogHeader>
-      <form onSubmit={handleShare} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
           type="email"
           placeholder="Enter email address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
+          {...register("email", {
+            required: "Email is required",
+            pattern: {
+              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+              message: "Invalid email address",
+            },
+          })}
         />
-        {error && <ErrorMessage message={error} />}
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Sharing..." : "Share Lease"}
+        {errors.email && <ErrorMessage message={errors.email.message} />}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Sharing..." : "Share Lease"}
         </Button>
       </form>
     </DialogContent>

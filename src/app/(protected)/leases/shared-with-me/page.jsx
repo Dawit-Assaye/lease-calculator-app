@@ -5,20 +5,22 @@ import { axiosInstance } from "~/lib/axios";
 import LeaseList from "~/components/LeaseList";
 import { Loader2 } from "lucide-react";
 
-const fetchSharedLeases = async () => {
-  const { data } = await axiosInstance.get("/leases/shared/api");
+const fetchSharedWithMeLeases = async () => {
+  const { data } = await axiosInstance.get("/leases/shared-with-me/api");
   return data;
 };
 
-export default function SharedLeasesPage() {
+export default function SharedWithMeLeasesPage() {
   const {
     data: sharedLeases,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["shared-leases"],
-    queryFn: fetchSharedLeases,
+    queryKey: ["shared-with-me-leases"],
+    queryFn: fetchSharedWithMeLeases,
   });
+
+  console.log(sharedLeases, "sharedLeases");
 
   if (isLoading) {
     return (
@@ -35,10 +37,10 @@ export default function SharedLeasesPage() {
   return (
     <div className="container mx-auto py-8">
       <LeaseList
-        mode="shared"
+        mode="shared-with-me"
         leases={sharedLeases.map((lease) => ({
           ...lease.lease,
-          sharedWithEmail: lease.sharedWithEmail,
+          sharedByEmail: lease.sharedByEmail,
         }))}
       />
     </div>

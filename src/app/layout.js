@@ -31,7 +31,7 @@ export default function RootLayout({ children }) {
         )}
       >
         <TrqProvider>{children}</TrqProvider>
-        <Toaster position="top-center" reverseOrder={false} />
+        <Toaster position="top-right" reverseOrder={false} />
       </body>
     </html>
   );

@@ -12,12 +12,14 @@ const fetchLeases = async () => {
 
 export default function LeasesPage() {
   const {
-    data: leases,
+    data: leases = [],
     isLoading,
     error,
   } = useQuery({
     queryKey: ["leases"],
     queryFn: fetchLeases,
+    staleTime: 5000,
+    suspense: true,
   });
 
   if (isLoading) {
@@ -34,7 +36,7 @@ export default function LeasesPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <LeaseList leases={leases} />
+      <LeaseList leases={leases} mode="all" />
     </div>
   );
 }
