@@ -94,8 +94,6 @@ export default function LeaseForm({
   const watchAllFields = watch();
 
   const onSubmit = (data) => {
-    console.log("Form data:", data);
-    console.log("Form errors:", errors);
     const formData = {
       ...data,
     };

@@ -46,7 +46,6 @@ export default function LoginPage() {
         router.push("/login");
       }
     } catch (error) {
-      console.log(error, "errrrrror");
       setGlobalError(
         error.response?.data?.message ||
           "Registration failed. Please try again."

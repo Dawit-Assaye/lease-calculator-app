@@ -11,8 +11,6 @@ export async function POST(request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    console.log(session.user.email, "SESSION USER EMAIL");
-
     const { leaseId, sharedWithEmail } = await request.json();
     const sharedByEMail = session.user.email;
 
@@ -29,7 +27,6 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    console.log(leaseId, sharedWithEmail, sharedByEMail, "LEASE ID AND EMAIL");
 
     const sharedLease = await prisma.sharedLease.create({
       data: {
@@ -38,7 +35,6 @@ export async function POST(request) {
         sharedByEmail: sharedByEMail,
       },
     });
-    console.log(sharedLease, "SHARED LEASE");
 
     return NextResponse.json(sharedLease, { status: 201 });
   } catch (error) {

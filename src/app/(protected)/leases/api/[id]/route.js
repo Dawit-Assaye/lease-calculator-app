@@ -30,7 +30,6 @@ export async function PUT(request) {
   try {
     const { id, ...leaseData } = await request.json();
 
-    console.log(id, "LEASE ID");
     const validatedData = leaseSchema.parse(leaseData);
 
     const lease = await prisma.lease.update({

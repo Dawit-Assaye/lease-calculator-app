@@ -20,7 +20,6 @@ const leaseSchema = z.object({
 
 export async function POST(request) {
   const session = await getServerSession();
-  console.log("Session Data:", session);
 
   if (!session) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {

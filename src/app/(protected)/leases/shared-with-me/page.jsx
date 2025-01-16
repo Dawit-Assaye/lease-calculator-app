@@ -20,8 +20,6 @@ export default function SharedWithMeLeasesPage() {
     queryFn: fetchSharedWithMeLeases,
   });
 
-  console.log(sharedLeases, "sharedLeases");
-
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">

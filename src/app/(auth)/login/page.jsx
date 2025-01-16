@@ -41,10 +41,8 @@ export default function LoginPage() {
     });
 
     if (result.error) {
-      console.log(result.error, "errrrrorr");
       setGlobalError("Invalid email or password");
     } else {
-      console.log("Login successful!");
       router.push("/leases");
       router.refresh();
       setGlobalError("");
