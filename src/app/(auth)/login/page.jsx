@@ -62,7 +62,7 @@ export default function LoginPage() {
         <span className="text-secondary text-xl font-bold">Lease App</span>
       </div>
 
-      <h1 className="text-3xl font-bold text-title">Login</h1>
+      <h1 className="text-3xl font-bold text-title">Signin</h1>
 
       {globalError && <ErrorMessage message={globalError} />}
 
@@ -108,16 +108,14 @@ export default function LoginPage() {
         className="w-full rounded-md bg-primary text-white py-3 hover:bg-primary/90 transition-colors"
         type="submit"
       >
-        Login
+        Signin
       </Button>
-      <Link
-        className="flex flex-row items-center justify-end gap-2"
-        href={"/register"}
-      >
-        <span className="text-md text-secondary underline">
-          Don't have an account?
-        </span>
-      </Link>
+      <div className="flex flex-row items-center justify-end gap-2">
+        <span className="text-md">Don't have an account?</span>
+        <Link href={"/register"} className="text-md text-secondary underline">
+          Signup
+        </Link>
+      </div>
     </form>
   );
 }

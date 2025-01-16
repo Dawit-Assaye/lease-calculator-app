@@ -114,12 +114,12 @@ export default function LoginPage() {
       >
         Signup
       </Button>
-      <Link
-        className="flex flex-row items-center justify-end gap-2"
-        href={"/login"}
-      >
-        <span className="text-md text-secondary underline">Login</span>
-      </Link>
+      <div className="flex flex-row items-center justify-end gap-2">
+        <span className="text-md">Already have an account?</span>
+        <Link href={"/login"} className="text-md text-secondary underline">
+          Signin
+        </Link>
+      </div>
     </form>
   );
 }
